@@ -1,9 +1,9 @@
 import React, {useState, useRef,useEffect} from 'react';
-import Form from './components/Form.js'
+import UsernameForm from './components/UsernameForm.js'
 import Chat from './components/Chat.js'
 import io from 'socket.io-client'
 import immer from 'immer' 
-import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css'
 
 function App() {
   const initialMessageState = {
@@ -117,7 +117,7 @@ function App() {
             />)
   }else{
     body =(
-      <Form username={username} onChange={handleChange} connect={connect} />
+      <UsernameForm username={username} onChange={handleChange} connect={connect} />
     )
   }
   

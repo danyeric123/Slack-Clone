@@ -1,5 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
+import Button from 'react-bootstrap/Button'
+import { FormControl, ListGroup, Nav, Navbar } from 'react-bootstrap';
 
 const rooms=[
   "general",
@@ -12,12 +14,6 @@ const Container = styled.div`
     display: flex;
 `;
 
-const SideBar = styled.div`
-    height: 100%;
-    width: 15%;
-    border-right: 1px solid black;
-`;
-
 const ChatPanel = styled.div`
     height: 100;
     width: 85%;
@@ -25,32 +21,13 @@ const ChatPanel = styled.div`
     flex-direction: column;
 `;
 
-const BodyContainer = styled.div`
-    width: 100%;
-    height: 75%;
-    overflow: scroll;
-    border-bottom: 1px solid black;
-`;
-
 const TextBox = styled.textarea`
     height: 15%;
     width: 100%;
 `;
 
-const ChannelInfo = styled.div`
-    height: 10%;
-    width: 100%;
-    border-bottom: 1px solid black;
-`;
-
 const Row = styled.div`
     cursor: pointer;
-`;
-
-const Messages = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
 `;
 
 export default function Chat(props) {
@@ -71,9 +48,9 @@ export default function Chat(props) {
   function renderUser(user){
     if(user.id===props.yourId){
       return (
-        <Row key={user.id}>
+        <Nav.Item key={user.id}>
           <strong>{user.username}</strong>
-        </Row>
+        </Nav.Item>
       )
     }
     const currentChat = {
@@ -82,11 +59,11 @@ export default function Chat(props) {
       recieverId: user.id
     }
     return (
-      <Row onClick={()=>{
+      <Nav.Item onClick={()=>{
         props.toggleChat(currentChat)
       }} key = {user.id}>
         {user.username}
-      </Row>
+      </Nav.Item>
     )
   }
 
@@ -109,35 +86,38 @@ export default function Chat(props) {
   if(!props.currentChat.isChannel || props.connectedRooms.includes(props.currentChat.chatName)){
     console.log(props)
     body = (
-      <Messages>
+      <ListGroup.Item>
         {props.messages.map(renderMessages)}
-      </Messages>
+      </ListGroup.Item>
     )
   }else{
     body = (
-      <button onClick={()=>props.joinRoom(props.currentChat.chatName)}>
+      <Button variant="success" onClick={()=>props.joinRoom(props.currentChat.chatName)}>
         Join {props.currentChat.chatName}
-      </button>
+      </Button>
     )
   }
 
   return (
     <div>
       <Container>
-        <SideBar>
+        <Navbar bg="light" expand="lg"className="flex-column">
           <h3>Channels</h3>
           {rooms.map(renderRooms)}
           <h3>All Users</h3>
           {props.allUsers.map(renderUser)}
-        </SideBar>
+        </Navbar>
         <ChatPanel>
-          <ChannelInfo>
-            {props.currentChat.chatname}
-          </ChannelInfo>
-          <BodyContainer>
+          <Navbar bg="dark" variant="dark">
+            <Navbar.Brand>
+              #  {props.currentChat.chatName}
+            </Navbar.Brand>
+          </Navbar>
+          <ListGroup>
             {body}
-          </BodyContainer>
-          <TextBox 
+          </ListGroup>
+          <FormControl
+            as="textarea" 
             value={props.message}
             onChange={props.handleMessageChange}
             onKeyPress={handleKeyPress}
