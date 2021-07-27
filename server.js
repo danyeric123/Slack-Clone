@@ -3,6 +3,10 @@ import {Server} from 'socket.io'
 import http from 'http'
 import debug from 'debug'
 
+
+// connect to MongoDB with mongoose
+import('./config/database.js')
+
 // create the express app
 const app = express()
 let server = http.createServer(app)
@@ -14,7 +18,7 @@ let io = new Server(server)
  const port = normalizePort(process.env.PORT || '3000')
  app.set('port', port)
  
- let users = [] 
+ let onlineUsers = [] 
  const messages = {
    general: [],
    offtopic: [],
@@ -23,17 +27,21 @@ let io = new Server(server)
 
 io.on('connection',socket=>{
   socket.on('join-server',(username)=>{
+    /**
+     * we would either create a new user if username doesn't exist
+     * otherwise we would just change the socketid
+     */
     const user ={
       username,
       id: socket.id
     }
-    users.push(user)
-    io.emit("update-user-list", users)
+    onlineUsers.push(user)
+    io.emit("update-user-list", onlineUsers)
   })
 
   socket.on("join-room",(roomName,cb)=>{
     socket.join(roomName)
-    cb(messages[roomName])
+    cb(messages[roomName]) // This would be getMessages from controller
   })
   
   socket.on("send-message",({message,recipient,sender,chatName,isChannel})=>{
@@ -53,6 +61,7 @@ io.on('connection',socket=>{
     }
     socket.to(recipient).emit('new-message', payload)
     if(messages[chatName]){
+      // newMessage function here and it is passed the chatroon
       messages[chatName].push({
         sender,
         message
@@ -61,9 +70,9 @@ io.on('connection',socket=>{
       messages[sender] = [message]
     }
   })
-  socket.on('disconnnect', ()=>{
-    delete chatters[socket.id]
-    io.emit('update-user-list', Object.keys(chatters).map(id => chatters[id]));
+  socket.on('disconnect', ()=>{
+    onlineUsers = onlineUsers.filter(user=>user.id!==socket.id)
+    io.emit('update-user-list', users);
   })
 })
 

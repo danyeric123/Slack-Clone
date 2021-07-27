@@ -1,18 +1,15 @@
 import React from 'react'
 import styled from 'styled-components'
 import Button from 'react-bootstrap/Button'
-import { FormControl, ListGroup, Nav, Navbar } from 'react-bootstrap';
+import { BiChat, BiHash } from "react-icons/bi";
+import { FiUsers } from "react-icons/fi";
+import { Card, Container, FormControl, ListGroup, Nav, Navbar } from 'react-bootstrap';
 
 const rooms=[
   "general",
   "offtopic"
 ]
 
-const Container = styled.div`
-    height: 100vh;
-    width: 100%;
-    display: flex;
-`;
 
 const ChatPanel = styled.div`
     height: 100;
@@ -21,17 +18,30 @@ const ChatPanel = styled.div`
     flex-direction: column;
 `;
 
-const TextBox = styled.textarea`
-    height: 15%;
-    width: 100%;
-`;
-
-const Row = styled.div`
-    cursor: pointer;
-`;
-
 export default function Chat(props) {
   
+  function difference(message) {
+    let postDate = message.createdAt
+    let difference = Date.now() - postDate
+    if(difference<10000){
+      return "less than a second"
+    }else if (difference<60000) {
+      return `${Math.floor(difference/10000)} seconds`
+    }else if (difference<3600000) {
+      return `${Math.floor(difference/60000)} minutes`
+    }else if (difference<86400000) {
+      return `${Math.floor(difference/3600000)} hours`
+    }else if (difference<604800000) {
+      return `${Math.floor(difference/86400000)} days`
+    }else if (difference<2628000000) {
+      return `${Math.floor(difference/604800000)} weeks`
+    }else if (difference<31540000000) {
+      return `${Math.floor(difference/2628000000)} months`
+    }else{
+      return `${Math.floor(difference/31540000000)} years`
+    }
+  }
+
   function renderRooms(room){
     const currentChat = {
       chatName: room,
@@ -39,9 +49,9 @@ export default function Chat(props) {
       recieverId:""
     }
     return (
-      <Row onClick={()=>props.toggleChat(currentChat)} key={room}>
-        {room}
-      </Row>
+      <Nav.Item onClick={()=>props.toggleChat(currentChat)} key={room}>
+       <BiHash/> {room}
+      </Nav.Item>
     )
   }
 
@@ -69,10 +79,13 @@ export default function Chat(props) {
 
   function renderMessages(message,index){
     return (
-      <div key={index}>
-        <h3>{message.sender}</h3>
-        <p>{message.message}</p>
-      </div>
+      <Card key={index}>
+        <Card.Body>
+          <Card.Title>{message.sender}</Card.Title>
+          <Card.Text>{message.message}</Card.Text>
+          <footer className="text-muted">{difference(message)} ago</footer>
+        </Card.Body>
+      </Card>
     )
   }
 
@@ -84,11 +97,12 @@ export default function Chat(props) {
 
   let body
   if(!props.currentChat.isChannel || props.connectedRooms.includes(props.currentChat.chatName)){
-    console.log(props)
     body = (
-      <ListGroup.Item>
+      <ListGroup
+        style={{height:"75%", overflow:"scroll"}}
+      >
         {props.messages.map(renderMessages)}
-      </ListGroup.Item>
+      </ListGroup>
     )
   }else{
     body = (
@@ -99,13 +113,23 @@ export default function Chat(props) {
   }
 
   return (
-    <div>
-      <Container>
+      <Container 
+        className="d-flex"
+        style={{height:"100vh",width:"100vh"}}
+      >
         <Navbar bg="light" expand="lg"className="flex-column">
-          <h3>Channels</h3>
-          {rooms.map(renderRooms)}
-          <h3>All Users</h3>
-          {props.allUsers.map(renderUser)}
+          <Nav.Item className="mb-3">
+            <Navbar.Brand>
+              <BiChat/>  Channels
+            </Navbar.Brand>
+            {rooms.map(renderRooms)}
+          </Nav.Item>
+          <Nav.Item className="mb-3">
+            <Navbar.Brand>
+              <FiUsers/>Online Users
+            </Navbar.Brand>
+            {props.allUsers.map(renderUser)}
+          </Nav.Item>
         </Navbar>
         <ChatPanel>
           <Navbar bg="dark" variant="dark">
@@ -113,11 +137,10 @@ export default function Chat(props) {
               #  {props.currentChat.chatName}
             </Navbar.Brand>
           </Navbar>
-          <ListGroup>
             {body}
-          </ListGroup>
           <FormControl
             as="textarea" 
+            style={{height:"15%"}}
             value={props.message}
             onChange={props.handleMessageChange}
             onKeyPress={handleKeyPress}
@@ -125,6 +148,5 @@ export default function Chat(props) {
           />
         </ChatPanel>
       </Container>
-    </div>
   )
 }

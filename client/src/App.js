@@ -44,14 +44,14 @@ function App() {
     const newMessage = immer(messages, draft=>{
       draft[currentChat.chatName].push({
         sender: username,
-        message: message
+        message: message,
+        createdAt: new Date()
       })
     })
     setMessages(newMessage)
   }
 
   function roomJoinCallback(incomingMessages, room){
-    console.log(messages)
     const newMessages = immer(messages,draft=>{
       draft[room]=incomingMessages
     })
@@ -84,7 +84,6 @@ function App() {
     currentSocket.emit('join-server',username)
     currentSocket.emit('join-room','general', messages=>roomJoinCallback(messages,'general'))
     currentSocket.on('update-user-list', allUsers=>{
-      console.log(allUsers)
       setAllUsers(allUsers)
     })
     currentSocket.on('new-message',({message,sender,chatName})=>{
